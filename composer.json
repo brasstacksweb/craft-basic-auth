@@ -1,0 +1,58 @@
+{
+	"name": "brasstacksweb/craft-basic-auth",
+	"description": "A Craft CMS plugin to configure HTTP Basic Authentication for your site.",
+	"type": "craft-plugin",
+	"license": "proprietary",
+	"authors": [
+		{
+			"name": "Brass Tacks Web",
+			"homepage": "https://www.brasstacksweb.com"
+		}
+	],
+	"support": {
+		"email": "help@brasstacksweb.com",
+		"issues": "https://github.com/brasstacksweb/craft-basic-auth/issues?state=open",
+		"source": "https://github.com/brasstacksweb/craft-basic-auth",
+		"docs": "https://github.com/brasstacksweb/craft-basic-auth",
+		"rss": "https://github.com/brasstacksweb/craft-basic-auth/releases.atom"
+	},
+	"require": {
+		"php": "^8.2",
+		"craftcms/cms": "^5.0.0"
+	},
+	"require-dev": {
+		"craftcms/phpstan": "dev-main",
+		"craftcms/rector": "dev-main",
+		"friendsofphp/php-cs-fixer": "^3.75"
+	},
+	"autoload": {
+		"psr-4": {
+			"brasstacksweb\\craftbasicauth\\": "src/"
+		}
+	},
+	"extra": {
+		"handle": "craft-basic-auth",
+		"name": "Basic Auth",
+		"developer": "Brass Tacks Web",
+		"developerUrl": "https://www.brasstacksweb.com",
+		"documentationUrl": "https://github.com/brasstacksweb/craft-basic-auth",
+		"class": "brasstacksweb\\craftbasicauth\\BasicAuth"
+	},
+	"scripts": {
+		"check-cs": "ecs check --ansi",
+		"fix-cs": "ecs check --ansi --fix",
+		"phpstan": "phpstan --memory-limit=1G"
+	},
+	"config": {
+		"sort-packages": true,
+		"platform": {
+			"php": "8.2"
+		},
+		"allow-plugins": {
+			"yiisoft/yii2-composer": true,
+			"craftcms/plugin-installer": true
+		}
+	},
+	"minimum-stability": "dev",
+	"prefer-stable": true
+}
