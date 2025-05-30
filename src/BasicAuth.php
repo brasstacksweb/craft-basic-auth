@@ -9,6 +9,7 @@ use craft\base\Plugin;
 use craft\events\RegisterUrlRulesEvent;
 use craft\helpers\App;
 use craft\helpers\StringHelper;
+use craft\web\Request;
 use craft\web\UrlManager;
 use yii\base\Event;
 
@@ -52,65 +53,15 @@ class BasicAuth extends Plugin
         $activeConditions = $this->getSettings()->getActiveConditions();
 
         if (count($activeConditions) > 0) {
-            $this->processAuthentication($activeConditions);
+            foreach ($activeConditions as $condition) {
+                if ($this->matchCondition($request, $condition)) {
+                    $this->requireAuthentication($condition);
+                }
+            }
         }
 
         // \Craft::$app->onInit(function () {
         // });
-    }
-
-    protected function processAuthentication(array $activeConditions): void
-    {
-        $request = \Craft::$app->getRequest();
-        $currentDomain = $request->getHostName();
-        $currentPath = $request->getPathInfo();
-
-        foreach ($activeConditions as $key => $condition) {
-            // Check environments
-            if (!in_array(\Craft::$app->config->env, $condition->environments, true)) {
-                continue; // Skip to next condition
-            }
-
-            // Check domains
-            foreach ($condition->domains as $domain) {
-                if (StringHelper::matchWildcard($domain, '/'.$currentDomain)) {
-                    continue 2; // Skip to next condition
-                }
-            }
-
-            // Check excepted paths
-            foreach ($condition->exceptedPaths as $path) {
-                if (StringHelper::matchWildcard($path, '/'.$currentPath)) {
-                    continue 2; // Skip to next condition
-                }
-            }
-
-            // Check protected paths
-            $requiresAuth = false;
-            foreach ($condition->protectedPaths as $path) {
-                if (StringHelper::matchWildcard($path, '/'.$currentPath)) {
-                    $requiresAuth = true;
-
-                    break;
-                }
-            }
-
-            // If authentication is required, check credentials
-            if ($requiresAuth) {
-                $username = $_SERVER['PHP_AUTH_USER'] ?? null;
-                $password = $_SERVER['PHP_AUTH_PW'] ?? null;
-
-                if ($username === $condition->username && $password === App::parseEnv($condition->password)) {
-                    return;
-                }
-
-                header('WWW-Authenticate: Basic realm="'.$condition->realm.'"');
-                header('HTTP/1.0 401 Unauthorized');
-                echo $condition->customFailureMessage ?: 'Authentication required';
-
-                exit;
-            }
-        }
     }
 
     protected function createSettingsModel(): ?Model
@@ -123,5 +74,43 @@ class BasicAuth extends Plugin
         return \Craft::$app->view->renderTemplate('craft-basic-auth/_settings.twig', [
             'settings' => $this->getSettings(),
         ]);
+    }
+
+    private function matchCondition(Request $request, Condition $condition): bool
+    {
+        $currentDomain = $request->getHostName();
+        $currentPath = $request->getPathInfo();
+        $environmentMatches = in_array(\Craft::$app->config->env, $condition->environments, true);
+        $domainMatches = count(array_filter(
+            $condition->domains,
+            fn ($d) => StringHelper::matchWildcard($d, '/'.$currentDomain)
+        )) > 0;
+        $triggered = $environmentMatches || $domainMatches;
+        $pathProtected = count(array_filter(
+            $condition->protectedPaths,
+            fn ($p) => StringHelper::matchWildcard($p, '/'.$currentPath)
+        )) > 0;
+        $pathExcepted = count(array_filter(
+            $condition->exceptedPaths,
+            fn ($p) => StringHelper::matchWildcard($p, '/'.$currentPath)
+        )) > 0;
+
+        return ($triggered || $pathProtected) && !$pathExcepted;
+    }
+
+    private function requireAuthentication(Condition $condition): void
+    {
+        $username = $_SERVER['PHP_AUTH_USER'] ?? null;
+        $password = $_SERVER['PHP_AUTH_PW'] ?? null;
+
+        if ($username === $condition->username && $password === App::parseEnv($condition->password)) {
+            return;
+        }
+
+        header('WWW-Authenticate: Basic realm="'.$condition->realm.'"');
+        header('HTTP/1.0 401 Unauthorized');
+        echo $condition->customFailureMessage ?: 'Authentication required';
+
+        exit;
     }
 }
