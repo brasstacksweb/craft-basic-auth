@@ -1,0 +1,152 @@
+{# @var key string #}
+{# @var condition \brasstacksweb\craftbasicauth\models\Condition #}
+
+{% import '_includes/forms' as forms %}
+
+<div>
+	{{ forms.lightswitchField({
+		label: condition.getAttributeLabel('enabled'),
+		name: key ~ '[enabled]',
+		on: condition.enabled,
+		toggle: 'condition-content-' ~ key,
+	}) }}
+
+	{{ forms.textField({
+		label: condition.getAttributeLabel('realm'),
+		instructions: condition.getAttributeHint('realm'),
+		id: key ~ '-realm',
+		name: key ~ '[realm]',
+		value: condition.realm,
+		placeholder: condition.getAttributePlaceholder('realm'),
+		errors: condition.getErrors('realm'),
+		required: true,
+	}) }}
+
+	<div class="field">
+		<div class="heading">
+			<label class="required">Trigger Conditions</label>
+			<div class="instructions">
+				<p>Authentication will be required when <strong>any</strong> of these conditions match.</p>
+			</div>
+		</div>
+
+		{{ forms.editableTableField({
+			label: condition.getAttributeLabel('environments'),
+			instructions: condition.getAttributeHint('environments'),
+			id: key ~ '-environments',
+			name: key ~ '[environments]',
+			cols: [
+				{
+					type: 'singleline',
+					heading: 'Environment',
+					placeholder: condition.getAttributePlaceholder('environments'),
+				}
+			],
+			rows: condition.environments,
+			errors: condition.getErrors('environments'),
+			allowAdd: true,
+			allowDelete: true,
+			addRowLabel: 'Add an Environment',
+		}) }}
+
+		{{ forms.editableTableField({
+			label: condition.getAttributeLabel('domains'),
+			instructions: condition.getAttributeHint('domains'),
+			id: key ~ '-domains',
+			name: key ~ '[domains]',
+			cols: [
+				{
+					type: 'singleline',
+					heading: 'Domain',
+					placeholder: condition.getAttributePlaceholder('domains'),
+				}
+			],
+			rows: condition.domains,
+			errors: condition.getErrors('domains'),
+			allowAdd: true,
+			allowDelete: true,
+			addRowLabel: 'Add an Environment',
+		}) }}
+	</div>
+
+	<div class="field">
+		<div class="heading">
+			<h3>Credentials</h3>
+		</div>
+
+		{{ forms.textField({
+			label: condition.getAttributeLabel('username'),
+			id: key ~ '-username',
+			name: key ~ '[username]',
+			value: condition.username,
+			placeholder: condition.getAttributePlaceholder('username'),
+			errors: condition.getErrors('username'),
+			required: true,
+		}) }}
+
+		{{ forms.autosuggestField({
+			label: condition.getAttributeLabel('password'),
+			id: key ~ '-password',
+			name: key ~ '[password]',
+			suggestEnvVars: true,
+			value: condition.password,
+			placeholder: condition.getAttributePlaceholder('password'),
+			errors: condition.getErrors('password'),
+			required: true,
+		}) }}
+	</div>
+
+	<div class="field">
+		<div class="heading">
+			<h3>Bypass Settings</h3>
+		</div>
+
+		{{ forms.editableTableField({
+			label: condition.getAttributeLabel('exceptedPaths'),
+			instructions: condition.getAttributeHint('exceptedPaths'),
+			id: key ~ '-exceptedPaths',
+			name: key ~ '[exceptedPaths]',
+			cols: [
+				{
+					type: 'singleline',
+					heading: 'Path',
+					placeholder: condition.getAttributePlaceholder('exceptedPaths'),
+				}
+			],
+			rows: condition.exceptedPaths,
+			errors: condition.getErrors('exceptedPaths'),
+			allowAdd: true,
+			allowDelete: true,
+			addRowLabel: 'Add an Path',
+		}) }}
+
+		{{ forms.editableTableField({
+			label: condition.getAttributeLabel('protectedPaths'),
+			instructions: condition.getAttributeHint('protectedPaths'),
+			id: key ~ '-protectedPaths',
+			name: key ~ '[protectedPaths]',
+			cols: [
+				{
+					type: 'singleline',
+					heading: 'Path',
+					placeholder: condition.getAttributePlaceholder('protectedPaths'),
+				}
+			],
+			rows: condition.protectedPaths,
+			errors: condition.getErrors('protectedPaths'),
+			allowAdd: true,
+			allowDelete: true,
+			addRowLabel: 'Add an Path',
+		}) }}
+
+		{{ forms.textField({
+			label: condition.getAttributeLabel('customFailureMessage'),
+			instructions: condition.getAttributeHint('customFailureMessage'),
+			id: key ~ '-customFailureMessage',
+			name: key ~ '[customFailureMessage]',
+			value: condition.customFailureMessage,
+			placeholder: condition.getAttributePlaceholder('customFailureMessage'),
+			errors: condition.getErrors('customFailureMessage'),
+		}) }}
+	</div>
+</div>

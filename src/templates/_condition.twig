@@ -1,0 +1,22 @@
+{# @var condition \brasstacksweb\craftbasicauth\models\Condition #}
+
+{% extends '_layouts/cp.twig' %}
+
+{% set fullPageForm = true %}
+{% set title = 'New Authentication Condition' %}
+{% set crumbs = [
+	{
+		label: 'All Conditions',
+		url: url('settings/plugins/craft-basic-auth'),
+	},
+] %}
+
+{% block content %}
+	{{ actionInput('craft-basic-auth/conditions/save') }}
+	{{ redirectInput('settings/plugins/craft-basic-auth') }}
+
+	{% include 'craft-basic-auth/_components/condition-fields.twig' with {
+		key: 'condition',
+		condition: condition,
+	} %}
+{% endblock %}

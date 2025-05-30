@@ -1,0 +1,24 @@
+{# @var key string #}
+{# @var condition \brasstacksweb\craftbasicauth\models\Condition #}
+
+<div class="pane" data-condition>
+	<div class="field" style="margin:0">
+		<div class="flex">
+			<h2 class="flex-grow" style="margin:0">
+				<span class="status {{ condition.enabled ? 'enabled' : 'disabled' }}"></span>
+				<span data-condition-title>{{ condition.realm ?: 'New Condition' }}</span>
+			</h2>
+			<div>
+				<button type="button" class="btn small" data-condition-toggle>Collapse</button>
+				<button type="button" class="btn small delete" data-condition-delete>Delete</button>
+			</div>
+		</div>
+	</div>
+
+	<div style="margin-top:24px;" data-condition-content>
+		{% include 'craft-basic-auth/_components/condition-fields.twig' with {
+			key: key,
+			condition: condition,
+		} %}
+	</div>
+</div>

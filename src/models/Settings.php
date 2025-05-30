@@ -7,125 +7,101 @@ use craft\helpers\StringHelper;
 
 class Settings extends Model
 {
-    /**
-     * @var array Array of authentication rules
-     */
-    public array $authRules = [];
+    public array $conditions = [];
 
-    /**
-     * Initialize settings with default values
-     */
-    public function init(): void
-    {
-        parent::init();
-        
-        // Convert authRules to Condition models if they aren't already
-        foreach ($this->authRules as $key => $rule) {
-            if (!$rule instanceof Condition) {
-                $this->authRules[$key] = new Condition($rule);
-            }
-        }
-    }
-    
-    /**
-     * Set attributes from form submission
-     */
     public function setAttributes($values, $safeOnly = true): void
     {
         parent::setAttributes($values, $safeOnly);
-        
-        // Handle authRules from form submissions
-        if (isset($values['authRules']) && is_array($values['authRules'])) {
-            $this->authRules = [];
-            
-            foreach ($values['authRules'] as $key => $rule) {
-                // Generate a unique key if needed
-                if (!is_string($key) || empty($key)) {
-                    $key = 'rule-' . StringHelper::UUID();
+
+        // Handle conditions from form submissions
+        if (isset($values['conditions']) && is_array($values['conditions'])) {
+            foreach ($values['conditions'] as $key => $condition) {
+                if (!$condition instanceof Condition && is_array($condition)) {
+                    $this->conditions[$key] = new Condition(array_merge($condition, [
+                        'environments' => is_array($condition['environments'] ?? '') ? $condition['environments'] : [],
+                        'domains' => is_array($condition['domains'] ?? '') ? $condition['domains'] : [],
+                        'exceptedPaths' => is_array($condition['exceptedPaths'] ?? '') ? $condition['exceptedPaths'] : [],
+                        'protectedPaths' => is_array($condition['protectedPaths'] ?? '') ? $condition['protectedPaths'] : [],
+                    ]));
                 }
-                
-                $this->authRules[$key] = new Condition($rule);
             }
         }
     }
-    
-    /**
-     * Get active rules based on current environment, domain, and site
-     */
-    public function getActiveRules(): array
+
+    public function rules(): array
     {
-        $activeRules = [];
+        return [
+            [['conditions'], 'validateConditions'],
+        ];
+    }
+
+    public function validateConditions($attribute, $params): void
+    {
+        foreach ($this->conditions as $condition) {
+            if (!$condition->validate()) {
+                $this->addErrors($condition->getErrors());
+            }
+        }
+    }
+
+    public function getActiveConditions(): array
+    {
+        $activeConditions = [];
         $currentEnvironment = \Craft::$app->config->env;
         $currentDomain = \Craft::$app->request->getHostName();
-        $currentSite = \Craft::$app->sites->getCurrentSite()->handle;
-        
-        foreach ($this->authRules as $key => $rule) {
-            if (!$rule->enabled) {
+
+        foreach ($this->conditions as $key => $condition) {
+            if (!$condition->enabled) {
                 continue;
             }
-            
+
             // Check environment match (case-insensitive)
             $environmentMatch = false;
-            foreach ($rule->environments as $environment) {
+            foreach ($condition->environments as $environment) {
                 if (strtolower($environment) === strtolower($currentEnvironment)) {
                     $environmentMatch = true;
+
                     break;
                 }
             }
-            
+
             // Check domain match
             $domainMatch = false;
-            foreach ($rule->domains as $domain) {
-                if ($this->matchWildcardPattern($domain, $currentDomain)) {
+            foreach ($condition->domains as $domain) {
+                if (StringHelper::matchWildcard($domain, $currentDomain)) {
                     $domainMatch = true;
+
                     break;
                 }
             }
-            
-            // Check site match
-            $siteMatch = in_array($currentSite, $rule->sites, true);
-            
-            // Rule is active if any condition matches
-            if ($environmentMatch || $domainMatch || $siteMatch) {
-                $activeRules[$key] = $rule;
+
+            // Condition is active if any condition matches
+            if ($environmentMatch || $domainMatch) {
+                $activeConditions[$key] = $condition;
             }
         }
-        
-        return $activeRules;
+
+        return $activeConditions;
     }
-    
-    /**
-     * Match a string against a wildcard pattern
-     */
-    private function matchWildcardPattern(string $pattern, string $string): bool
-    {
-        $pattern = preg_quote($pattern, '/');
-        $pattern = str_replace('\*', '.*', $pattern);
-        
-        return (bool) preg_match('/^' . $pattern . '$/i', $string);
-    }
-    
-    /**
-     * Validate that realm names are unique
-     */
+
     public function validateRealmUniqueness(): bool
     {
         $realms = [];
         $valid = true;
-        
-        foreach ($this->authRules as $key => $rule) {
-            if (!$rule->enabled) {
+
+        foreach ($this->conditions as $key => $condition) {
+            if (!$condition->enabled) {
                 continue;
             }
-            
-            if (isset($realms[$rule->realm])) {
-                $rule->addError('realm', "Realm name '{$rule->realm}' is already used by another rule.");
+
+            if (isset($realms[$condition->realm])) {
+                $condition->addError('realm', "Realm name '{$condition->realm}' is already used by another condition.");
                 $valid = false;
             } else {
-                $realms[$rule->realm] = true;
+                $realms[$condition->realm] = true;
             }
         }
-        
+
         return $valid;
     }
 }

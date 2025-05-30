@@ -6,28 +6,26 @@ A Craft CMS plugin that provides configurable HTTP Basic Authentication for webs
 
 ## Core Features
 
-- **Unified Rule System**: Single configuration structure for all authentication rules
-- **Flexible Triggers**: Rules can be triggered by environment, domain patterns, or Craft sites
+- **Unified Condition System**: Single configuration structure for all authentication conditions
+- **Flexible Triggers**: Conditions can be triggered by environment, domain patterns, or Craft sites
 - **Wildcard Pattern Matching**: Support for domain and path pattern matching
 - **Environment Variable Integration**: Password fields support Craft's environment variable syntax
-- **IP Whitelisting**: Bypass authentication for specific IP addresses
 - **User-Agent Exceptions**: Skip authentication for specific user agents (bots, crawlers)
-- **Path Management**: Define excepted and protected paths per rule
-- **Logged-in User Bypass**: Optional bypass for users already authenticated in Craft CMS
+- **Path Management**: Define excepted and protected paths per condition
 
 ## Configuration Structure
 
 ### Settings Storage
 Configuration is stored in Craft CMS `project.yaml` file through the plugin settings interface.
 
-### Rule Configuration Schema
+### Condition Configuration Schema
 
 ```yaml
 plugins:
   your-basic-auth-plugin:
     settings:
-      authRules:
-        "rule-realm-name":
+      conditions:
+        "condition-realm-name":
           enabled: boolean
           realm: string # Unique identifier and HTTP Basic Auth realm
           triggerConditions:
@@ -37,12 +35,9 @@ plugins:
           credentials:
             username: string
             password: string # Supports Craft environment variable syntax ($VAR_NAME)
-          ipWhitelist: array # IP addresses/patterns that bypass auth
-          userAgentExceptions: array # User-Agent patterns that bypass auth
           exceptedPaths: array # URI patterns that bypass auth
           protectedPaths: array # URI patterns that require auth even if environment/domain not protected
           customFailureMessage: string # Optional custom 401 message
-          bypassForLoggedInUsers: boolean # Skip auth for Craft-authenticated users
 ```
 
 ### Example Configuration
@@ -51,7 +46,7 @@ plugins:
 plugins:
   your-basic-auth-plugin:
     settings:
-      authRules:
+      conditions:
         "Development Environment":
           enabled: true
           realm: "Development Environment"
@@ -62,12 +57,9 @@ plugins:
           credentials:
             username: "dev"
             password: "$DEV_AUTH_PASSWORD"
-          ipWhitelist: ["127.0.0.1", "192.168.1.*"]
-          userAgentExceptions: ["*bot*", "*crawler*", "*monitor*"]
           exceptedPaths: ["/webhooks/*", "/api/health", "/system/status"]
           protectedPaths: []
           customFailureMessage: "Development access required"
-          bypassForLoggedInUsers: false
 
         "Staging Sites":
           enabled: true
@@ -79,18 +71,15 @@ plugins:
           credentials:
             username: "staging"
             password: "$STAGING_AUTH_PASSWORD"
-          ipWhitelist: []
-          userAgentExceptions: ["*bot*"]
           exceptedPaths: ["/webhooks/*"]
           protectedPaths: ["/admin/reports/*"]
           customFailureMessage: ""
-          bypassForLoggedInUsers: true
 ```
 
-## Rule Matching Logic
+## Condition Matching Logic
 
 ### Trigger Conditions
-A rule applies when **any** of its trigger conditions match:
+A condition applies when **any** of its trigger conditions match:
 - Current environment matches any environment in `environments` array (case-insensitive)
 - OR current domain matches any pattern in `domains` array
 - OR current site handle matches any handle in `sites` array
@@ -98,26 +87,26 @@ A rule applies when **any** of its trigger conditions match:
 ### Environment Detection
 - Uses Craft's `CRAFT_ENVIRONMENT` constant
 - Case-insensitive matching
-- No authentication applied if current environment has no matching rules
+- No authentication applied if current environment has no matching conditions
 
-### Multiple Rule Handling
-- Multiple rules can apply simultaneously
-- Each applicable rule requires separate authentication
-- Rules are processed in configuration order
+### Multiple Condition Handling
+- Multiple conditions can apply simultaneously
+- Each applicable condition requires separate authentication
+- Conditions are processed in configuration order
 
 ### Path Processing Order
-1. Check if current URI matches any `exceptedPaths` in applicable rules → Skip auth
-2. Check if current URI matches any `protectedPaths` in any rule → Require auth
-3. Apply standard rule matching logic
+1. Check if current URI matches any `exceptedPaths` in applicable conditions → Skip auth
+2. Check if current URI matches any `protectedPaths` in any condition → Require auth
+3. Apply standard condition matching logic
 
 ## Settings Interface
 
 ### Settings Screen Structure
 
 ```
-Authentication Rules
+Authentication Conditions
 ├── [Current Environment: staging] [Current Site: site-1] ← Context indicators
-├── Add New Rule [+]
+├── Add New Condition [+]
 ├── "Development Environment" (enabled) ▼
 │   ├── Enable Basic Auth [toggle]
 │   ├── Realm Name: [text input] ← Unique identifier
@@ -128,13 +117,12 @@ Authentication Rules
 │   ├── Credentials:
 │   │   ├── Username: [text input]
 │   │   └── Password: [Craft environment variable field]
-│   ├── IP Whitelist: [tag field] (one per tag)
 │   ├── User-Agent Exceptions: [tag field] (supports wildcards)
 │   ├── Excepted Paths: [tag field] (supports wildcards)
 │   ├── Protected Paths: [tag field] (supports wildcards)
 │   ├── Custom Failure Message: [text input]
 │   └── Bypass for Logged-in Users: [toggle]
-└── [Delete Rule] (for each rule)
+└── [Delete Condition] (for each condition)
 ```
 
 ### Field Placeholders and Help Text
@@ -142,16 +130,15 @@ Authentication Rules
 - **Realm Name**: "e.g., Development Environment, Staging Sites"
 - **Environments**: "e.g., dev, staging, production"
 - **Domains**: "e.g., \*.dev.local, staging.example.com"
-- **IP Whitelist**: "e.g., 127.0.0.1, 192.168.1.\*, 10.0.0.0/8"
 - **User-Agent Exceptions**: "e.g., bot*, *crawler*, *monitor"
 - **Paths**: "e.g., /webhooks/, /api/health, /system/"
 
-## Validation Rules
+## Validation Conditions
 
 ### On Save Validation
 
 #### Required Fields (when enabled = true)
-- `realm`: Non-empty string, must be unique across all rules
+- `realm`: Non-empty string, must be unique across all conditions
 - At least one trigger condition must be specified
 - `credentials.username`: Non-empty string
 - `credentials.password`: Non-empty string
@@ -181,11 +168,11 @@ Authentication Rules
 - Support wildcards: `/api/*`, `/webhooks/*/callback`
 - Validate as reasonable URI patterns
 
-### Default Values for New Rules
+### Default Values for New Conditions
 
 ```yaml
 enabled: false
-realm: "New Authentication Rule"
+realm: "New Authentication Condition"
 triggerConditions:
   environments: []
   domains: []
@@ -193,27 +180,21 @@ triggerConditions:
 credentials:
   username: ""
   password: ""
-ipWhitelist: []
-userAgentExceptions: ["*bot*", "*crawler*"]
 exceptedPaths: ["/webhooks/*"]
 protectedPaths: []
 customFailureMessage: ""
-bypassForLoggedInUsers: false
 ```
 
 ## Technical Implementation Notes
 
 ### Authentication Flow
 1. Request received
-2. Check if any rules apply based on trigger conditions
-3. For each applicable rule:
-   - Check IP whitelist → bypass if matched
-   - Check user-agent exceptions → bypass if matched
+2. Check if any conditions apply based on trigger conditions
+3. For each applicable condition:
    - Check excepted paths → bypass if matched
    - Check protected paths → require auth if matched
    - Apply standard authentication requirement
 4. If authentication required:
-   - Check if user already logged into Craft (if bypass enabled)
    - Validate HTTP Basic Auth credentials
    - Return 401 with custom message if authentication fails
 
@@ -245,9 +226,9 @@ bypassForLoggedInUsers: false
 
 ## Future Enhancement Ideas
 
-- Rate limiting per IP/rule
-- Time-based authentication rules
+- Rate limiting per IP/condition
+- Time-based authentication conditions
 - Integration with Craft user permissions
 - Detailed logging and monitoring
 - Emergency bypass mechanisms
-- Multiple credential sets per rule
+- Multiple credential sets per condition
