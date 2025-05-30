@@ -1,5 +1,8 @@
+{# @var id string #}
 {# @var key string #}
 {# @var condition \brasstacksweb\craftbasicauth\models\Condition #}
+
+{% set id = id ?? key %}
 
 {% import '_includes/forms' as forms %}
 
@@ -14,7 +17,7 @@
 	{{ forms.textField({
 		label: condition.getAttributeLabel('realm'),
 		instructions: condition.getAttributeHint('realm'),
-		id: key ~ '-realm',
+		id: id ~ '-realm',
 		name: key ~ '[realm]',
 		value: condition.realm,
 		placeholder: condition.getAttributePlaceholder('realm'),
@@ -33,7 +36,7 @@
 		{{ forms.editableTableField({
 			label: condition.getAttributeLabel('environments'),
 			instructions: condition.getAttributeHint('environments'),
-			id: key ~ '-environments',
+			id: id ~ '-environments',
 			name: key ~ '[environments]',
 			cols: [
 				{
@@ -42,7 +45,7 @@
 					placeholder: condition.getAttributePlaceholder('environments'),
 				}
 			],
-			rows: condition.environments,
+			rows: condition.environments|map(e => [e]),
 			errors: condition.getErrors('environments'),
 			allowAdd: true,
 			allowDelete: true,
@@ -52,7 +55,7 @@
 		{{ forms.editableTableField({
 			label: condition.getAttributeLabel('domains'),
 			instructions: condition.getAttributeHint('domains'),
-			id: key ~ '-domains',
+			id: id ~ '-domains',
 			name: key ~ '[domains]',
 			cols: [
 				{
@@ -76,7 +79,7 @@
 
 		{{ forms.textField({
 			label: condition.getAttributeLabel('username'),
-			id: key ~ '-username',
+			id: id ~ '-username',
 			name: key ~ '[username]',
 			value: condition.username,
 			placeholder: condition.getAttributePlaceholder('username'),
@@ -86,7 +89,7 @@
 
 		{{ forms.autosuggestField({
 			label: condition.getAttributeLabel('password'),
-			id: key ~ '-password',
+			id: id ~ '-password',
 			name: key ~ '[password]',
 			suggestEnvVars: true,
 			value: condition.password,
@@ -104,7 +107,7 @@
 		{{ forms.editableTableField({
 			label: condition.getAttributeLabel('exceptedPaths'),
 			instructions: condition.getAttributeHint('exceptedPaths'),
-			id: key ~ '-exceptedPaths',
+			id: id ~ '-exceptedPaths',
 			name: key ~ '[exceptedPaths]',
 			cols: [
 				{
@@ -123,7 +126,7 @@
 		{{ forms.editableTableField({
 			label: condition.getAttributeLabel('protectedPaths'),
 			instructions: condition.getAttributeHint('protectedPaths'),
-			id: key ~ '-protectedPaths',
+			id: id ~ '-protectedPaths',
 			name: key ~ '[protectedPaths]',
 			cols: [
 				{
@@ -142,7 +145,7 @@
 		{{ forms.textField({
 			label: condition.getAttributeLabel('customFailureMessage'),
 			instructions: condition.getAttributeHint('customFailureMessage'),
-			id: key ~ '-customFailureMessage',
+			id: id ~ '-customFailureMessage',
 			name: key ~ '[customFailureMessage]',
 			value: condition.customFailureMessage,
 			placeholder: condition.getAttributePlaceholder('customFailureMessage'),

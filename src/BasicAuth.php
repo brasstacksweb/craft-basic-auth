@@ -33,6 +33,10 @@ class BasicAuth extends Plugin
 
         $request = \Craft::$app->getRequest();
 
+        if ($request->getIsConsoleRequest()) {
+            return;
+        }
+
         if ($request->getIsCpRequest()) {
             $this->controllerNamespace = 'brasstacksweb\craftbasicauth\controllers';
 
@@ -47,7 +51,7 @@ class BasicAuth extends Plugin
 
         $activeConditions = $this->getSettings()->getActiveConditions();
 
-        if ($request->getIsSiteRequest() && count($activeConditions) > 0) {
+        if (count($activeConditions) > 0) {
             $this->processAuthentication($activeConditions);
         }
 

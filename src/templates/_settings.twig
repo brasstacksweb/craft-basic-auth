@@ -14,9 +14,11 @@
 			</div>
 		</div>
 	</div>
-
+	{# Needed to submit with after deleting last condition #}
+	<input type="hidden" name="conditions" value="">
 	{% for key, condition in settings.conditions %}
 		{% include 'craft-basic-auth/_components/condition-card.twig' with {
+			id: 'condition-' ~ key,
 			key: 'conditions[' ~ key ~ ']',
 			condition: condition,
 		} %}

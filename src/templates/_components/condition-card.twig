@@ -1,3 +1,4 @@
+{# @var id string #}
 {# @var key string #}
 {# @var condition \brasstacksweb\craftbasicauth\models\Condition #}
 
@@ -17,6 +18,7 @@
 
 	<div style="margin-top:24px;" data-condition-content>
 		{% include 'craft-basic-auth/_components/condition-fields.twig' with {
+			id: id,
 			key: key,
 			condition: condition,
 		} %}

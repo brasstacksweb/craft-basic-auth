@@ -3,6 +3,7 @@
 namespace brasstacksweb\craftbasicauth\models;
 
 use craft\base\Model;
+use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
 
 class Settings extends Model
@@ -14,14 +15,15 @@ class Settings extends Model
         parent::setAttributes($values, $safeOnly);
 
         // Handle conditions from form submissions
+        // Hacky array check and flattening thanks for how editable tables force associative arrays
         if (isset($values['conditions']) && is_array($values['conditions'])) {
             foreach ($values['conditions'] as $key => $condition) {
                 if (!$condition instanceof Condition && is_array($condition)) {
                     $this->conditions[$key] = new Condition(array_merge($condition, [
-                        'environments' => is_array($condition['environments'] ?? '') ? $condition['environments'] : [],
-                        'domains' => is_array($condition['domains'] ?? '') ? $condition['domains'] : [],
-                        'exceptedPaths' => is_array($condition['exceptedPaths'] ?? '') ? $condition['exceptedPaths'] : [],
-                        'protectedPaths' => is_array($condition['protectedPaths'] ?? '') ? $condition['protectedPaths'] : [],
+                        'environments' => $this->flatten($condition, 'environments'),
+                        'domains' => $this->flatten($condition, 'domains'),
+                        'exceptedPaths' => $this->flatten($condition, 'exceptedPaths'),
+                        'protectedPaths' => $this->flatten($condition, 'protectedPaths'),
                     ]));
                 }
             }
@@ -46,62 +48,55 @@ class Settings extends Model
 
     public function getActiveConditions(): array
     {
-        $activeConditions = [];
         $currentEnvironment = \Craft::$app->config->env;
         $currentDomain = \Craft::$app->request->getHostName();
 
-        foreach ($this->conditions as $key => $condition) {
+        return array_reduce($this->conditions, function ($carry, $condition) use ($currentEnvironment, $currentDomain) {
             if (!$condition->enabled) {
-                continue;
+                return $carry;
             }
 
             // Check environment match (case-insensitive)
-            $environmentMatch = false;
             foreach ($condition->environments as $environment) {
                 if (strtolower($environment) === strtolower($currentEnvironment)) {
-                    $environmentMatch = true;
-
-                    break;
+                    return [...$carry, $condition];
                 }
             }
 
             // Check domain match
-            $domainMatch = false;
             foreach ($condition->domains as $domain) {
                 if (StringHelper::matchWildcard($domain, $currentDomain)) {
-                    $domainMatch = true;
-
-                    break;
+                    return [...$carry, $condition];
                 }
             }
 
-            // Condition is active if any condition matches
-            if ($environmentMatch || $domainMatch) {
-                $activeConditions[$key] = $condition;
-            }
-        }
-
-        return $activeConditions;
+            return $carry;
+        }, []);
     }
 
-    public function validateRealmUniqueness(): bool
+    // public function validateRealmUniqueness(): bool
+    // {
+    //     $realms = [];
+    //     $valid = true;
+
+    //     foreach ($this->conditions as $key => $condition) {
+    //         if (!$condition->enabled) {
+    //             continue;
+    //         }
+
+    //         if (isset($realms[$condition->realm])) {
+    //             $condition->addError('realm', "Realm name '{$condition->realm}' is already used by another condition.");
+    //             $valid = false;
+    //         } else {
+    //             $realms[$condition->realm] = true;
+    //         }
+    //     }
+
+    //     return $valid;
+    // }
+
+    private function flatten(array $attrs, string $key): array
     {
-        $realms = [];
-        $valid = true;
-
-        foreach ($this->conditions as $key => $condition) {
-            if (!$condition->enabled) {
-                continue;
-            }
-
-            if (isset($realms[$condition->realm])) {
-                $condition->addError('realm', "Realm name '{$condition->realm}' is already used by another condition.");
-                $valid = false;
-            } else {
-                $realms[$condition->realm] = true;
-            }
-        }
-
-        return $valid;
+        return is_array($attrs[$key] ?? '') ? ArrayHelper::flatten($attrs[$key]) : [];
     }
 }

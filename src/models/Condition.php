@@ -8,19 +8,12 @@ use craft\validators\ArrayValidator;
 
 class Condition extends Model
 {
-    // Basic settings
     public bool $enabled = false;
     public string $realm = '';
-
-    // Trigger conditions
     public array $environments = [];
     public array $domains = [];
-
-    // Authentication
     public string $username = '';
     public string $password = '';
-
-    // Bypass settings
     public array $exceptedPaths = [];
     public array $protectedPaths = [];
     public string $customFailureMessage = '';
@@ -28,21 +21,6 @@ class Condition extends Model
     public function getEnvironments(): array
     {
         return ArrayHelper::flatten($this->environments);
-    }
-
-    public function getDomains(): array
-    {
-        return ArrayHelper::flatten($this->domains);
-    }
-
-    public function getExceptedPaths(): array
-    {
-        return ArrayHelper::flatten($this->exceptedPaths);
-    }
-
-    public function getProtectedPaths(): array
-    {
-        return ArrayHelper::flatten($this->protectedPaths);
     }
 
     public function rules(): array
@@ -139,12 +117,10 @@ class Condition extends Model
         };
     }
 
-    public function getAttributeWidth(string $name): string
-    {
-        return match ($name) {
-            'realm' => '40%',
-            'enabled' => '10%',
-            default => '100%',
-        };
-    }
+    // public function getAttributeWidth(string $name): string
+    // {
+    //     return match ($name) {
+    //         default => '100%',
+    //     };
+    // }
 }
