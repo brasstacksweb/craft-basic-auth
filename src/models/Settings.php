@@ -34,6 +34,7 @@ class Settings extends Model
     {
         return [
             [['conditions'], 'validateConditions'],
+            [['conditions'], 'validateConditionRealms'],
         ];
     }
 
@@ -42,6 +43,19 @@ class Settings extends Model
         foreach ($this->conditions as $condition) {
             if (!$condition->validate()) {
                 $this->addErrors($condition->getErrors());
+            }
+        }
+    }
+
+    public function validateConditionRealms($attribute, $params): void
+    {
+        $realms = [];
+
+        foreach ($this->conditions as $key => $condition) {
+            if (isset($realms[$condition->realm])) {
+                $condition->addError('realm', "Realm '{$condition->realm}' is used by another condition.");
+            } else {
+                $realms[$condition->realm] = true;
             }
         }
     }
@@ -73,27 +87,6 @@ class Settings extends Model
             return $carry;
         }, []);
     }
-
-    // public function validateRealmUniqueness(): bool
-    // {
-    //     $realms = [];
-    //     $valid = true;
-
-    //     foreach ($this->conditions as $key => $condition) {
-    //         if (!$condition->enabled) {
-    //             continue;
-    //         }
-
-    //         if (isset($realms[$condition->realm])) {
-    //             $condition->addError('realm', "Realm name '{$condition->realm}' is already used by another condition.");
-    //             $valid = false;
-    //         } else {
-    //             $realms[$condition->realm] = true;
-    //         }
-    //     }
-
-    //     return $valid;
-    // }
 
     private function flatten(array $attrs, string $key): array
     {
