@@ -30,10 +30,10 @@ class Condition extends Model
             [['enabled'], 'boolean'],
             [['realm', 'username', 'password', 'customFailureMessage'], 'string'],
             [['environments', 'domains', 'exceptedPaths', 'protectedPaths'], ArrayValidator::class],
-            [['environments', 'domains'], 'validateTriggers', 'skipOnEmpty' => false, 'when' => fn($model) => $model->enabled],
+            [['environments', 'domains'], 'validateTriggers', 'skipOnEmpty' => false, 'when' => fn ($model) => $model->enabled],
             [['environments'], 'validateEnvironments'],
             [['domains'], 'validateDomains'],
-            [['username', 'password'], 'required', 'when' => fn($model) => $model->enabled],
+            [['username', 'password'], 'required', 'when' => fn ($model) => $model->enabled],
             [['exceptedPaths', 'protectedPaths'], 'validatePaths'],
         ];
     }

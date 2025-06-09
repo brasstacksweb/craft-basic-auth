@@ -65,7 +65,7 @@ class Settings extends Model
         $currentEnvironment = \Craft::$app->config->env;
         $currentDomain = \Craft::$app->request->getHostName();
 
-        return array_reduce($this->conditions, function($carry, $condition) use ($currentEnvironment, $currentDomain) {
+        return array_reduce($this->conditions, function ($carry, $condition) use ($currentEnvironment, $currentDomain) {
             if (!$condition->enabled) {
                 return $carry;
             }
