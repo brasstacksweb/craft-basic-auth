@@ -44,7 +44,7 @@ class BasicAuth extends Plugin
             Event::on(
                 UrlManager::class,
                 UrlManager::EVENT_REGISTER_CP_URL_RULES,
-                function (RegisterUrlRulesEvent $event) {
+                function(RegisterUrlRulesEvent $event) {
                     $event->rules['craft-basic-auth/conditions'] = 'craft-basic-auth/conditions';
                 }
             );
@@ -83,16 +83,16 @@ class BasicAuth extends Plugin
         $environmentMatches = in_array(\Craft::$app->config->env, $condition->environments, true);
         $domainMatches = count(array_filter(
             $condition->domains,
-            fn ($d) => StringHelper::matchWildcard($d, '/'.$currentDomain)
+            fn($d) => StringHelper::matchWildcard($d, '/' . $currentDomain)
         )) > 0;
         $triggered = $environmentMatches || $domainMatches;
         $pathProtected = count(array_filter(
             $condition->protectedPaths,
-            fn ($p) => StringHelper::matchWildcard($p, '/'.$currentPath)
+            fn($p) => StringHelper::matchWildcard($p, '/' . $currentPath)
         )) > 0;
         $pathExcepted = count(array_filter(
             $condition->exceptedPaths,
-            fn ($p) => StringHelper::matchWildcard($p, '/'.$currentPath)
+            fn($p) => StringHelper::matchWildcard($p, '/' . $currentPath)
         )) > 0;
 
         return ($triggered || $pathProtected) && !$pathExcepted;
@@ -107,7 +107,7 @@ class BasicAuth extends Plugin
             return;
         }
 
-        header('WWW-Authenticate: Basic realm="'.$condition->realm.'"');
+        header('WWW-Authenticate: Basic realm="' . $condition->realm . '"');
         header('HTTP/1.0 401 Unauthorized');
         echo $condition->customFailureMessage ?: 'Authentication required';
 
