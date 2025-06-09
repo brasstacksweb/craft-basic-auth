@@ -64,6 +64,7 @@ class Settings extends Model
     {
         $currentEnvironment = \Craft::$app->config->env;
         $currentDomain = \Craft::$app->request->getHostName();
+        $currentPath = \Craft::$app->request->getPathInfo();
 
         return array_reduce($this->conditions, function ($carry, $condition) use ($currentEnvironment, $currentDomain) {
             if (!$condition->enabled) {
@@ -80,6 +81,13 @@ class Settings extends Model
             // Check domain match
             foreach ($condition->domains as $domain) {
                 if (StringHelper::matchWildcard($domain, $currentDomain)) {
+                    return [...$carry, $condition];
+                }
+            }
+
+            // Check if current path is protected
+            foreach ($condition->protectedPaths as $protectedPath) {
+                if (StringHelper::matchWildcard($protectedPath, '/'.$currentPath)) {
                     return [...$carry, $condition];
                 }
             }
