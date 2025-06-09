@@ -50,8 +50,46 @@ composer require brasstacksweb/craft-basic-auth
 
 Configure authentication rules through the plugin's settings page in your Craft control panel. Each rule can be triggered by:
 
-Environment names (e.g., dev, staging, production)
-Domain patterns (e.g., \*.staging.com, dev.example.com)
-Craft site handles (for multi-site installations)
+- Environment names (e.g., dev, staging, production)
+- Domain patterns (e.g., \*.staging.com, dev.example.com)
+- Craft site handles (for multi-site installations)
 
-Rules support wildcard patterns, IP whitelisting, path exceptions, and integration with Craft's user system.
+Rules support wildcard patterns, path exceptions, and custom failure messages.
+
+## Testing
+
+This plugin includes a test suite to verify its functionality.
+
+### Running Tests
+
+```bash
+# Install dev dependencies if you haven't already
+composer install
+
+# Run all tests
+composer test
+
+# Generate coverage report
+composer test-coverage
+```
+
+### What's Covered
+
+The test suite covers:
+
+1. **Basic Setup** - Verifies that the test environment is correctly configured
+2. **Model Tests** - Tests for Condition and Settings models:
+   - Default values
+   - Property validation
+   - Method functionality
+3. **Plugin Tests** - Uses PHPUnit mocks to simulate Craft dependencies:
+   - Condition matching logic
+   - Path protection and exception handling
+   - Authentication functionality
+
+### Writing Your Own Tests
+
+If you extend this plugin, you can add your own tests in the `tests/` directory:
+
+1. For simple tests that don't require Craft, add them to the "Simple Tests" testsuite in phpunit.xml
+2. For more complex tests, you'll need to set up a Craft testing environment
