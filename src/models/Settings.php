@@ -66,38 +66,44 @@ class Settings extends Model
         $currentDomain = \Craft::$app->request->getHostName();
         $currentPath = \Craft::$app->request->getPathInfo();
 
-        return array_reduce($this->conditions, function ($carry, $condition) use ($currentEnvironment, $currentDomain) {
-            if (!$condition->enabled) {
+        return array_reduce(
+            $this->conditions,
+            function ($carry, $condition) use ($currentEnvironment, $currentDomain, $currentPath) {
+                if (!$condition->enabled) {
+                    return $carry;
+                }
+
+                // Check environment match (case-insensitive)
+                foreach ($condition->environments as $environment) {
+                    if (strtolower($environment) === strtolower($currentEnvironment)) {
+                        return [...$carry, $condition];
+                    }
+                }
+
+                // Check domain match
+                foreach ($condition->domains as $domain) {
+                    if (StringHelper::matchWildcard($domain, $currentDomain)) {
+                        return [...$carry, $condition];
+                    }
+                }
+
+                // Check if current path is protected
+                foreach ($condition->protectedPaths as $protectedPath) {
+                    if (StringHelper::matchWildcard($protectedPath, '/'.$currentPath)) {
+                        return [...$carry, $condition];
+                    }
+                }
+
                 return $carry;
-            }
-
-            // Check environment match (case-insensitive)
-            foreach ($condition->environments as $environment) {
-                if (strtolower($environment) === strtolower($currentEnvironment)) {
-                    return [...$carry, $condition];
-                }
-            }
-
-            // Check domain match
-            foreach ($condition->domains as $domain) {
-                if (StringHelper::matchWildcard($domain, $currentDomain)) {
-                    return [...$carry, $condition];
-                }
-            }
-
-            // Check if current path is protected
-            foreach ($condition->protectedPaths as $protectedPath) {
-                if (StringHelper::matchWildcard($protectedPath, '/'.$currentPath)) {
-                    return [...$carry, $condition];
-                }
-            }
-
-            return $carry;
-        }, []);
+            },
+            []
+        );
     }
 
     private function flatten(array $attrs, string $key): array
     {
-        return is_array($attrs[$key] ?? '') ? ArrayHelper::flatten($attrs[$key]) : [];
+        return is_array($attrs[$key] ?? '')
+            ? array_values(ArrayHelper::flatten($attrs[$key]))
+            : [];
     }
 }

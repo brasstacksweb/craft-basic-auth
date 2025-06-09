@@ -64,7 +64,7 @@
 					placeholder: condition.getAttributePlaceholder('domains'),
 				}
 			],
-			rows: condition.domains,
+			rows: condition.domains|map(d => [d]),
 			errors: condition.getErrors('domains'),
 			allowAdd: true,
 			allowDelete: true,
@@ -116,7 +116,7 @@
 					placeholder: condition.getAttributePlaceholder('exceptedPaths'),
 				}
 			],
-			rows: condition.exceptedPaths,
+			rows: condition.exceptedPaths|map(p => [p]),
 			errors: condition.getErrors('exceptedPaths'),
 			allowAdd: true,
 			allowDelete: true,
@@ -135,7 +135,7 @@
 					placeholder: condition.getAttributePlaceholder('protectedPaths'),
 				}
 			],
-			rows: condition.protectedPaths,
+			rows: condition.protectedPaths|map(p => [p]),
 			errors: condition.getErrors('protectedPaths'),
 			allowAdd: true,
 			allowDelete: true,
