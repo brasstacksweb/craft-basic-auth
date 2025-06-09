@@ -21,7 +21,7 @@ This plugin allows you to protect your Craft CMS sites with HTTP Basic Authentic
 
 ## Requirements
 
-This plugin requires Craft CMS 5.0 or later, and PHP 8.2 or later.
+This plugin requires Craft CMS 4.0 or later, and PHP 8.0 or later.
 
 ## Installation
 
