@@ -121,11 +121,4 @@ class Condition extends Model
             default => '',
         };
     }
-
-    // public function getAttributeWidth(string $name): string
-    // {
-    //     return match ($name) {
-    //         default => '100%',
-    //     };
-    // }
 }

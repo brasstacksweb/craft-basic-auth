@@ -4,12 +4,10 @@ namespace brasstacksweb\craftbasicauth;
 
 use brasstacksweb\craftbasicauth\models\Condition;
 use brasstacksweb\craftbasicauth\models\Settings;
+use brasstacksweb\craftbasicauth\services\Auth;
 use craft\base\Model;
 use craft\base\Plugin;
 use craft\events\RegisterUrlRulesEvent;
-use craft\helpers\App;
-use craft\helpers\StringHelper;
-use craft\web\Request;
 use craft\web\UrlManager;
 use yii\base\Event;
 
@@ -27,11 +25,22 @@ class BasicAuth extends Plugin
 {
     public string $schemaVersion = '1.0.2';
     public bool $hasCpSettings = true;
+    public Auth $auth;
+
+    public static function config(): array
+    {
+        return [
+            'components' => [
+                'auth' => Auth::class,
+            ],
+        ];
+    }
 
     public function init(): void
     {
         parent::init();
 
+        $env = \Craft::$app->config->env;
         $request = \Craft::$app->getRequest();
 
         if ($request->getIsConsoleRequest()) {
@@ -44,26 +53,19 @@ class BasicAuth extends Plugin
             Event::on(
                 UrlManager::class,
                 UrlManager::EVENT_REGISTER_CP_URL_RULES,
-                function (RegisterUrlRulesEvent $event) {
+                function(RegisterUrlRulesEvent $event) {
                     $event->rules['craft-basic-auth/conditions'] = 'craft-basic-auth/conditions';
                 }
             );
         }
 
-        $activeConditions = $this->getSettings()->getActiveConditions();
+        $conditions = $this->getSettings()->conditions;
 
-        if (count($activeConditions) > 0) {
-            $authenticated = false;
-
-            foreach ($activeConditions as $condition) {
-                if (!$authenticated && $this->matchCondition($request, $condition)) {
-                    $authenticated = $this->requireAuthentication($condition);
-                }
-            }
+        if (count($conditions) === 0) {
+            return;
         }
 
-        // \Craft::$app->onInit(function () {
-        // });
+        $this->auth->checkRequest($env, $request, $conditions, [$this, 'sendChallenge']);
     }
 
     protected function createSettingsModel(): ?Model
@@ -78,38 +80,9 @@ class BasicAuth extends Plugin
         ]);
     }
 
-    private function matchCondition(Request $request, Condition $condition): bool
+    private function sendChallenge(Condition $condition): void
     {
-        $currentDomain = $request->getHostName();
-        $currentPath = $request->getPathInfo();
-        $environmentMatches = in_array(\Craft::$app->config->env, $condition->environments, true);
-        $domainMatches = count(array_filter(
-            $condition->domains,
-            fn ($d) => StringHelper::matchWildcard($d, $currentDomain)
-        )) > 0;
-        $triggered = $environmentMatches || $domainMatches;
-        $pathProtected = count(array_filter(
-            $condition->protectedPaths,
-            fn ($p) => StringHelper::matchWildcard($p, '/'.$currentPath)
-        )) > 0;
-        $pathExcepted = count(array_filter(
-            $condition->exceptedPaths,
-            fn ($p) => StringHelper::matchWildcard($p, '/'.$currentPath)
-        )) > 0;
-
-        return ($triggered || $pathProtected) && !$pathExcepted;
-    }
-
-    private function requireAuthentication(Condition $condition)
-    {
-        $username = $_SERVER['PHP_AUTH_USER'] ?? null;
-        $password = $_SERVER['PHP_AUTH_PW'] ?? null;
-
-        if ($username === $condition->username && $password === App::parseEnv($condition->password)) {
-            return true;
-        }
-
-        header('WWW-Authenticate: Basic realm="'.$condition->realm.'"');
+        header('WWW-Authenticate: Basic realm="' . $condition->realm . '"');
         header('HTTP/1.0 401 Unauthorized');
         echo $condition->customFailureMessage ?: 'Authentication required';
 
