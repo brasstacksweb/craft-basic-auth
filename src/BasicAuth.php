@@ -53,9 +53,11 @@ class BasicAuth extends Plugin
         $activeConditions = $this->getSettings()->getActiveConditions();
 
         if (count($activeConditions) > 0) {
+            $authenticated = false;
+
             foreach ($activeConditions as $condition) {
-                if ($this->matchCondition($request, $condition)) {
-                    $this->requireAuthentication($condition);
+                if (!$authenticated && $this->matchCondition($request, $condition)) {
+                    $authenticated = $this->requireAuthentication($condition);
                 }
             }
         }
@@ -83,7 +85,7 @@ class BasicAuth extends Plugin
         $environmentMatches = in_array(\Craft::$app->config->env, $condition->environments, true);
         $domainMatches = count(array_filter(
             $condition->domains,
-            fn($d) => StringHelper::matchWildcard($d, '/' . $currentDomain)
+            fn($d) => StringHelper::matchWildcard($d, $currentDomain)
         )) > 0;
         $triggered = $environmentMatches || $domainMatches;
         $pathProtected = count(array_filter(
@@ -98,13 +100,13 @@ class BasicAuth extends Plugin
         return ($triggered || $pathProtected) && !$pathExcepted;
     }
 
-    private function requireAuthentication(Condition $condition): void
+    private function requireAuthentication(Condition $condition)
     {
         $username = $_SERVER['PHP_AUTH_USER'] ?? null;
         $password = $_SERVER['PHP_AUTH_PW'] ?? null;
 
         if ($username === $condition->username && $password === App::parseEnv($condition->password)) {
-            return;
+            return true;
         }
 
         header('WWW-Authenticate: Basic realm="' . $condition->realm . '"');
