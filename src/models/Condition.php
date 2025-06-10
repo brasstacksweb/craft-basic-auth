@@ -30,10 +30,10 @@ class Condition extends Model
             [['enabled'], 'boolean'],
             [['realm', 'username', 'password', 'customFailureMessage'], 'string'],
             [['environments', 'domains', 'exceptedPaths', 'protectedPaths'], ArrayValidator::class],
-            [['environments', 'domains'], 'validateTriggers', 'skipOnEmpty' => false, 'when' => fn ($model) => $model->enabled],
+            [['environments', 'domains'], 'validateTriggers', 'skipOnEmpty' => false, 'when' => fn($model) => $model->enabled],
             [['environments'], 'validateEnvironments'],
             [['domains'], 'validateDomains'],
-            [['username', 'password'], 'required', 'when' => fn ($model) => $model->enabled],
+            [['username', 'password'], 'required', 'when' => fn($model) => $model->enabled],
             [['exceptedPaths', 'protectedPaths'], 'validatePaths'],
         ];
     }
@@ -58,9 +58,14 @@ class Condition extends Model
     public function validateDomains($attribute, $params): void
     {
         foreach ($this->{$attribute} as $domain) {
-            // Basic domain pattern validation
-            // Allows patterns like example.com, *.example.com, sub.example.com
-            if (!preg_match('/^(\*\.)?[a-zA-Z0-9][-a-zA-Z0-9]*(\.[a-zA-Z0-9][-a-zA-Z0-9]*)+$/', $domain)) {
+            // Enhanced domain pattern validation
+            // Allows patterns like:
+            // - example.com
+            // - *.example.com
+            // - sub.example.com
+            // - staging.*.com
+            // - staging.*.example.com
+            if (!preg_match('/^((\*\.)?[a-zA-Z0-9][-a-zA-Z0-9]*|[a-zA-Z0-9][-a-zA-Z0-9]*\.\*)((\.[a-zA-Z0-9][-a-zA-Z0-9]*)+)$/', $domain)) {
                 $this->addError($attribute, "Invalid domain pattern: {$domain}");
             }
         }

@@ -67,11 +67,13 @@ class BasicAuthTest extends TestCase
     public function testConditionDomains(): void
     {
         $condition = new Condition();
-        $condition->domains = ['example.com', '*.test.com'];
+        $condition->domains = ['example.com', '*.test.com', 'staging.*.com', 'dev.*.example.com'];
 
-        $this->assertCount(2, $condition->domains);
+        $this->assertCount(4, $condition->domains);
         $this->assertContains('example.com', $condition->domains);
         $this->assertContains('*.test.com', $condition->domains);
+        $this->assertContains('staging.*.com', $condition->domains);
+        $this->assertContains('dev.*.example.com', $condition->domains);
     }
 
     /**

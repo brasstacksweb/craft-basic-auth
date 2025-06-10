@@ -68,7 +68,7 @@ class Settings extends Model
 
         return array_reduce(
             $this->conditions,
-            function ($carry, $condition) use ($currentEnvironment, $currentDomain, $currentPath) {
+            function($carry, $condition) use ($currentEnvironment, $currentDomain, $currentPath) {
                 if (!$condition->enabled) {
                     return $carry;
                 }
@@ -89,7 +89,7 @@ class Settings extends Model
 
                 // Check if current path is protected
                 foreach ($condition->protectedPaths as $protectedPath) {
-                    if (StringHelper::matchWildcard($protectedPath, '/'.$currentPath)) {
+                    if (StringHelper::matchWildcard($protectedPath, '/' . $currentPath)) {
                         return [...$carry, $condition];
                     }
                 }
