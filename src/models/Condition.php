@@ -58,9 +58,14 @@ class Condition extends Model
     public function validateDomains($attribute, $params): void
     {
         foreach ($this->{$attribute} as $domain) {
-            // Basic domain pattern validation
-            // Allows patterns like example.com, *.example.com, sub.example.com
-            if (!preg_match('/^(\*\.)?[a-zA-Z0-9][-a-zA-Z0-9]*(\.[a-zA-Z0-9][-a-zA-Z0-9]*)+$/', $domain)) {
+            // Enhanced domain pattern validation
+            // Allows patterns like:
+            // - example.com
+            // - *.example.com
+            // - sub.example.com
+            // - staging.*.com
+            // - staging.*.example.com
+            if (!preg_match('/^((\*\.)?[a-zA-Z0-9][-a-zA-Z0-9]*|[a-zA-Z0-9][-a-zA-Z0-9]*\.\*)((\.[a-zA-Z0-9][-a-zA-Z0-9]*)+)$/', $domain)) {
                 $this->addError($attribute, "Invalid domain pattern: {$domain}");
             }
         }
