@@ -4,7 +4,6 @@ namespace brasstacksweb\craftbasicauth\models;
 
 use craft\base\Model;
 use craft\helpers\ArrayHelper;
-use craft\helpers\StringHelper;
 
 class Settings extends Model
 {
@@ -58,46 +57,6 @@ class Settings extends Model
                 $realms[$condition->realm] = true;
             }
         }
-    }
-
-    public function getActiveConditions(): array
-    {
-        $currentEnvironment = \Craft::$app->config->env;
-        $currentDomain = \Craft::$app->request->getHostName();
-        $currentPath = \Craft::$app->request->getPathInfo();
-
-        return array_reduce(
-            $this->conditions,
-            function($carry, $condition) use ($currentEnvironment, $currentDomain, $currentPath) {
-                if (!$condition->enabled) {
-                    return $carry;
-                }
-
-                // Check environment match (case-insensitive)
-                foreach ($condition->environments as $environment) {
-                    if (strtolower($environment) === strtolower($currentEnvironment)) {
-                        return [...$carry, $condition];
-                    }
-                }
-
-                // Check domain match
-                foreach ($condition->domains as $domain) {
-                    if (StringHelper::matchWildcard($domain, $currentDomain)) {
-                        return [...$carry, $condition];
-                    }
-                }
-
-                // Check if current path is protected
-                foreach ($condition->protectedPaths as $protectedPath) {
-                    if (StringHelper::matchWildcard($protectedPath, '/' . $currentPath)) {
-                        return [...$carry, $condition];
-                    }
-                }
-
-                return $carry;
-            },
-            []
-        );
     }
 
     private function flatten(array $attrs, string $key): array
