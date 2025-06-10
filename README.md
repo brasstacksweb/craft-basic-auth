@@ -5,6 +5,8 @@ A flexible and powerful Craft CMS plugin that adds HTTP Basic Authentication to 
 ## Overview
 This plugin allows you to protect your Craft CMS sites with HTTP Basic Authentication based on flexible trigger conditions including environment names and domain patterns. Perfect for protecting development, staging, or specific production environments while maintaining fine-grained control over what gets protected.
 
+![Settings screenshot](/docs/images/settings.png "Settings")
+
 ### Key Features
 
 - Flexible Rule System: Create authentication rules triggered by environment or domain patterns
@@ -54,6 +56,8 @@ Configure authentication rules through the plugin's settings page in your Craft 
 - Domain patterns (e.g., \*.staging.com, dev.example.com)
 
 Rules support wildcard patterns, path exceptions, and custom failure messages.
+
+![New Condition screenshot](/docs/images/condition.png "New Condition")
 
 ## Testing
 
