@@ -47,13 +47,15 @@ class BasicAuth extends Plugin
             return;
         }
 
+        $this->auth = $this->get('auth');
+
         if ($request->getIsCpRequest()) {
             $this->controllerNamespace = 'brasstacksweb\craftbasicauth\controllers';
 
             Event::on(
                 UrlManager::class,
                 UrlManager::EVENT_REGISTER_CP_URL_RULES,
-                function(RegisterUrlRulesEvent $event) {
+                function (RegisterUrlRulesEvent $event) {
                     $event->rules['craft-basic-auth/conditions'] = 'craft-basic-auth/conditions';
                 }
             );
@@ -82,7 +84,7 @@ class BasicAuth extends Plugin
 
     private function sendChallenge(Condition $condition): void
     {
-        header('WWW-Authenticate: Basic realm="' . $condition->realm . '"');
+        header('WWW-Authenticate: Basic realm="'.$condition->realm.'"');
         header('HTTP/1.0 401 Unauthorized');
         echo $condition->customFailureMessage ?: 'Authentication required';
 
