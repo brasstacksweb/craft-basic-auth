@@ -18,3 +18,6 @@
 
 ## 2.0.4 - 2025-06-11
 - Refactoring condition matching logic to improve performance and maintainability.
+
+## 2.0.5 - 2025-06-11
+- Fixed a bug where the Auth service property was being accessed before initialization.
