@@ -24,7 +24,7 @@ use yii\base\Event;
  */
 class BasicAuth extends Plugin
 {
-    public string $schemaVersion = '1.0.5';
+    public string $schemaVersion = '1.0.6';
     public bool $hasCpSettings = true;
 
     public static function config(): array
