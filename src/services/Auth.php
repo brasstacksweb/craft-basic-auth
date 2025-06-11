@@ -10,12 +10,12 @@ use yii\base\Component;
 
 class Auth extends Component
 {
-    public function checkRequest(string $env, Request $request, array $conditions, callable $challenge): void
+    public function getActiveCondition(string $env, Request $request, array $conditions): ?Condition
     {
         $activeConditions = array_filter($conditions, fn($c) => $this->matchCondition($env, $request, $c));
 
         if (count($activeConditions) === 0) {
-            return;
+            return null;
         }
 
         $passedConditions = array_filter(
@@ -25,15 +25,13 @@ class Auth extends Component
 
         // If any condition passes authentication, allow access
         if (count($passedConditions) > 0) {
-            return;
+            return null;
         }
 
         $failedConditions = array_diff_key($activeConditions, $passedConditions);
 
         // If authentication failed, challenge with first failed condition
-        if (count($failedConditions) > 0) {
-            $challenge(reset($failedConditions));
-        }
+        return reset($failedConditions) ?: null;
     }
 
     private function matchCondition(string $env, Request $request, Condition $condition): bool

@@ -8,6 +8,7 @@ use brasstacksweb\craftbasicauth\services\Auth;
 use craft\base\Model;
 use craft\base\Plugin;
 use craft\events\RegisterUrlRulesEvent;
+use craft\web\Response;
 use craft\web\UrlManager;
 use yii\base\Event;
 
@@ -25,7 +26,6 @@ class BasicAuth extends Plugin
 {
     public string $schemaVersion = '1.0.5';
     public bool $hasCpSettings = true;
-    public Auth $auth;
 
     public static function config(): array
     {
@@ -40,25 +40,16 @@ class BasicAuth extends Plugin
     {
         parent::init();
 
-        $env = \Craft::$app->config->env;
         $request = \Craft::$app->getRequest();
 
         if ($request->getIsConsoleRequest()) {
             return;
         }
 
-        $this->auth = $this->get('auth');
-
         if ($request->getIsCpRequest()) {
             $this->controllerNamespace = 'brasstacksweb\craftbasicauth\controllers';
 
-            Event::on(
-                UrlManager::class,
-                UrlManager::EVENT_REGISTER_CP_URL_RULES,
-                function(RegisterUrlRulesEvent $event) {
-                    $event->rules['craft-basic-auth/conditions'] = 'craft-basic-auth/conditions';
-                }
-            );
+            $this->attachCpEventHandlers();
         }
 
         $conditions = $this->getSettings()->conditions;
@@ -67,16 +58,16 @@ class BasicAuth extends Plugin
             return;
         }
 
-        $this->auth->checkRequest($env, $request, $conditions, [$this, 'sendChallenge']);
-    }
+        $env = \Craft::$app->config->env;
+        $activeCondition = $this->auth->getActiveCondition($env, $request, $conditions);
 
-    public function sendChallenge(Condition $condition): void
-    {
-        header('WWW-Authenticate: Basic realm="' . $condition->realm . '"');
-        header('HTTP/1.0 401 Unauthorized');
-        echo $condition->customFailureMessage ?: 'Authentication required';
+        if ($activeCondition === null) {
+            return;
+        }
 
-        exit;
+        $response = \Craft::$app->getResponse();
+
+        $this->sendChallenge($response, $activeCondition);
     }
 
     protected function createSettingsModel(): ?Model
@@ -89,5 +80,26 @@ class BasicAuth extends Plugin
         return \Craft::$app->view->renderTemplate('craft-basic-auth/_settings.twig', [
             'settings' => $this->getSettings(),
         ]);
+    }
+
+    private function attachCpEventHandlers(): void
+    {
+        Event::on(
+            UrlManager::class,
+            UrlManager::EVENT_REGISTER_CP_URL_RULES,
+            function(RegisterUrlRulesEvent $event) {
+                $event->rules['craft-basic-auth/conditions'] = 'craft-basic-auth/conditions';
+            }
+        );
+    }
+
+    private function sendChallenge(Response $response, Condition $condition): void
+    {
+        $response->headers->set('WWW-Authenticate', 'Basic realm="' . $condition->realm . '"');
+        $response->statusCode = 401;
+        $response->content = $condition->customFailureMessage ?: 'Authentication required';
+        $response->send();
+
+        \Craft::$app->end();
     }
 }
