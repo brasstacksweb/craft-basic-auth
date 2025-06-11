@@ -15,3 +15,6 @@
 
 ## 1.0.4 - 2025-06-11
 - Fixed a bug where the Auth service property was being accessed before initialization.
+
+## 1.0.5 - 2025-06-11
+- Fixed a bug in private class method being passed as a callable.
