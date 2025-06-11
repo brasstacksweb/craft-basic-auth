@@ -16,29 +16,20 @@ use PHPUnit\Framework\TestCase;
  */
 class BasicAuthTest extends TestCase
 {
-    /**
-     * Test creating a plugin mock.
-     */
     public function testPluginMock(): void
     {
-        // Create a mock of the plugin
         $plugin = $this->getMockBuilder(BasicAuth::class)
             ->disableOriginalConstructor()
             ->getMock();
 
-        // Set up a mock return value for getSettings
         $settings = new Settings();
         $plugin->method('getSettings')
             ->willReturn($settings);
 
-        // Verify the mock works
         $this->assertInstanceOf(BasicAuth::class, $plugin);
         $this->assertInstanceOf(Settings::class, $plugin->getSettings());
     }
 
-    /**
-     * Test a condition with enabled flag.
-     */
     public function testConditionEnabled(): void
     {
         $condition = new Condition();
@@ -48,9 +39,6 @@ class BasicAuthTest extends TestCase
         $this->assertTrue($condition->enabled);
     }
 
-    /**
-     * Test condition with environment settings.
-     */
     public function testConditionEnvironments(): void
     {
         $condition = new Condition();
@@ -61,9 +49,6 @@ class BasicAuthTest extends TestCase
         $this->assertContains('staging', $condition->environments);
     }
 
-    /**
-     * Test condition with domain settings.
-     */
     public function testConditionDomains(): void
     {
         $condition = new Condition();
@@ -76,9 +61,6 @@ class BasicAuthTest extends TestCase
         $this->assertContains('dev.*.example.com', $condition->domains);
     }
 
-    /**
-     * Test condition with path settings.
-     */
     public function testConditionPaths(): void
     {
         $condition = new Condition();
@@ -91,14 +73,10 @@ class BasicAuthTest extends TestCase
         $this->assertContains('/api/*', $condition->exceptedPaths);
     }
 
-    /**
-     * Test settings with conditions.
-     */
     public function testSettingsWithConditions(): void
     {
         $settings = new Settings();
 
-        // Create test conditions
         $condition1 = new Condition([
             'enabled' => true,
             'realm' => 'Test Realm 1',
@@ -117,7 +95,6 @@ class BasicAuthTest extends TestCase
 
         $settings->conditions = [$condition1, $condition2];
 
-        // Verify conditions
         $this->assertCount(2, $settings->conditions);
         $this->assertTrue($settings->conditions[0]->enabled);
         $this->assertFalse($settings->conditions[1]->enabled);
