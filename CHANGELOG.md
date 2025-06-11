@@ -9,3 +9,6 @@
 ## 1.0.2 - 2025-06-10
 - Bug fix in domain pattern matching when checking active conditions against the current request domain.
 - Updating authentication check to bypass subsequent matching conditions if any preceding conditions are met.
+
+## 1.0.3 - 2025-06-11
+- Refactoring condition matching logic to improve performance and maintainability.
