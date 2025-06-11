@@ -70,6 +70,15 @@ class BasicAuth extends Plugin
         $this->auth->checkRequest($env, $request, $conditions, [$this, 'sendChallenge']);
     }
 
+    public function sendChallenge(Condition $condition): void
+    {
+        header('WWW-Authenticate: Basic realm="' . $condition->realm . '"');
+        header('HTTP/1.0 401 Unauthorized');
+        echo $condition->customFailureMessage ?: 'Authentication required';
+
+        exit;
+    }
+
     protected function createSettingsModel(): ?Model
     {
         return new Settings();
@@ -80,14 +89,5 @@ class BasicAuth extends Plugin
         return \Craft::$app->view->renderTemplate('craft-basic-auth/_settings.twig', [
             'settings' => $this->getSettings(),
         ]);
-    }
-
-    private function sendChallenge(Condition $condition): void
-    {
-        header('WWW-Authenticate: Basic realm="' . $condition->realm . '"');
-        header('HTTP/1.0 401 Unauthorized');
-        echo $condition->customFailureMessage ?: 'Authentication required';
-
-        exit;
     }
 }
