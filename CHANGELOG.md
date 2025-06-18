@@ -24,3 +24,6 @@
 
 ## 2.0.6 - 2025-06-11
 - Fixed a bug in private class method being passed as a callable.
+
+## 2.0.7 - 2025-06-18
+- Simplified request and response handling for matching conditions.
